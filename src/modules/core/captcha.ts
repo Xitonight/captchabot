@@ -3,7 +3,6 @@ import { Dispatcher, filters } from "jsr:@mtcute/dispatcher";
 import { md } from "jsr:@mtcute/markdown-parser";
 import { BotKeyboard } from "jsr:@mtcute/core";
 import redis from "../../utils/redis.ts";
-import { red } from "jsr:@std/fmt@0.221/colors";
 
 const dp = Dispatcher.child();
 
