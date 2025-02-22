@@ -73,7 +73,7 @@ ${html`<pre>${firstNum} ${signChar} ${secondNum} = ?</pre>`}`,
   await redis.set(`captcha_${response.id}_user_id`, upd.user.id);
   await redis.set(`captcha_${response.id}_attempts`, 2);
 
-  await delay(10);
+  await delay(60 * 60 * 2);
 
   if (await redis.exists(`captcha_${response.id}_user_id`)) {
     await upd.client.kickChatMember({
