@@ -18,9 +18,15 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffledArray;
 }
 
+function delay(seconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+}
+
 dp.onChatMemberUpdate(filters.chatMember("joined"), async (upd) => {
-  const firstNum = Math.floor(Math.random() * 11);
-  const secondNum = Math.floor(Math.random() * 11);
+  const firstNum = Math.floor(Math.random() * 11) + 1;
+  console.log(firstNum);
+  const secondNum = Math.floor(Math.random() * 11) + 1;
+  console.log(firstNum);
   const sign = Math.floor(Math.random() * 2);
   let signChar = "";
   let result = 0;
@@ -36,7 +42,11 @@ dp.onChatMemberUpdate(filters.chatMember("joined"), async (upd) => {
   let possibleAnswers = [];
   possibleAnswers.push(result);
   for (let i = 0; i < 7; i++) {
-    possibleAnswers.push(Math.floor(Math.random() * 40) - 20);
+    let answer: number;
+    do {
+      answer = Math.floor(Math.random() * 40) - 20;
+    } while (possibleAnswers.indexOf(answer) != -1);
+    possibleAnswers.push(answer);
   }
 
   possibleAnswers = shuffleArray(possibleAnswers);
@@ -62,6 +72,19 @@ ${html`<pre>${firstNum} ${signChar} ${secondNum} = ?</pre>`}`,
   await redis.set(`captcha_${response.id}_result`, result);
   await redis.set(`captcha_${response.id}_user_id`, upd.user.id);
   await redis.set(`captcha_${response.id}_attempts`, 2);
+
+  await delay(10);
+
+  if (await redis.exists(`captcha_${response.id}_user_id`)) {
+    await upd.client.kickChatMember({
+      chatId: upd.chat.id,
+      userId: upd.user.id,
+    });
+    await upd.client.editMessage({
+      message: response,
+      text: `❌ ${upd.user.displayName} non ha completato il captcha nel tempo limite ed è stato espulso.`,
+    });
+  }
 });
 
 dp.onCallbackQuery(async (upd) => {
@@ -78,7 +101,7 @@ dp.onCallbackQuery(async (upd) => {
       });
       setTimeout(() => {
         upd.client.kickChatMember({ chatId: upd.chat.id, userId: upd.user.id });
-      }, 5000);
+      }, 5 * 1000);
       upd.editMessage({
         text: `❌ ${upd.user.displayName} non ha passato il captcha ed è stato espulso.`,
       });
