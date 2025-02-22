@@ -69,6 +69,7 @@ dp.onCallbackQuery(async (upd) => {
     upd.user.id != Number(await redis.get(`captcha_${upd.messageId}_user_id`))
   ) {
     upd.answer({ text: "Il captcha non è per te. 😝" });
+    return;
   }
   if (upd.dataStr != (await redis.get(`captcha_${upd.messageId}_result`))) {
     if (Number(await redis.get(`captcha_${upd.messageId}_attempts`)) == 0) {
@@ -81,6 +82,10 @@ dp.onCallbackQuery(async (upd) => {
       upd.editMessage({
         text: `❌ ${upd.user.displayName} non ha passato il captcha ed è stato espulso.`,
       });
+      await redis.del(`captcha_${upd.messageId}_result`);
+      await redis.del(`captcha_${upd.messageId}_user_id`);
+      await redis.del(`captcha_${upd.messageId}_attempts`);
+      return;
     }
     await redis.set(
       `captcha_${upd.messageId}_attempts`,
